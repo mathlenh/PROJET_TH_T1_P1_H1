@@ -1,43 +1,75 @@
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Graphe {
+    private Map<String, List<Arete>> adjacence = new HashMap<>();
 
-    private final Map<String, Sommet> sommets;
+    public void ajouterRoute(String source, String destination, int distance) {
+        adjacence.putIfAbsent(source, new ArrayList<>());
+        adjacence.putIfAbsent(destination, new ArrayList<>());
 
-    public Graphe() {
-        this.sommets = new HashMap<>();
+        adjacence.get(source).add(new Arete(destination, distance));
+        adjacence.get(destination).add(new Arete(source, distance));
     }
 
-    /**
-     * Ajoute un sommet au graphe s’il n’existe pas encore.
-     * @param nom nom du sommet
-     * @return le sommet créé ou déjà existant
-     */
-    public Sommet ajouterSommet(String nom) {
-        // Si le sommet existe déjà, on le retourne
-        if (sommets.containsKey(nom)) {
-            return sommets.get(nom);
+    public List<Arete> getVoisins(String sommet) {
+        return adjacence.getOrDefault(sommet, new ArrayList<>());
+    }
+
+    public Set<String> getSommets() {
+        return adjacence.keySet();
+    }
+
+    public int getDegre(String sommet) {
+        return adjacence.getOrDefault(sommet, Collections.emptyList()).size();
+    }
+
+    public ResultatDijkstra calculerCheminPlusCourt(String depart, String arrivee) {
+        Map<String, Integer> distances = new HashMap<>();
+        Map<String, String> predecesseurs = new HashMap<>();
+
+        for (String s : adjacence.keySet()) distances.put(s, Integer.MAX_VALUE);
+        distances.put(depart, 0);
+
+        PriorityQueue<String> file = new PriorityQueue<>(Comparator.comparingInt(distances::get));
+        file.add(depart);
+
+        while (!file.isEmpty()) {
+            String u = file.poll();
+            if (u.equals(arrivee)) break;
+            if (distances.get(u) == Integer.MAX_VALUE) break;
+
+            for (Arete voisin : getVoisins(u)) {
+                int newDist = distances.get(u) + voisin.distance;
+                if (newDist < distances.get(voisin.destination)) {
+                    distances.put(voisin.destination, newDist);
+                    predecesseurs.put(voisin.destination, u);
+                    file.add(voisin.destination);
+                }
+            }
         }
 
-        Sommet s = new Sommet(nom);
-        sommets.put(nom, s);
-        return s;
+        List<String> chemin = new LinkedList<>();
+        String curr = arrivee;
+        if (predecesseurs.containsKey(curr) || curr.equals(depart)) {
+            while (curr != null) {
+                chemin.add(0, curr);
+                curr = predecesseurs.get(curr);
+            }
+        }
+        return new ResultatDijkstra(distances.get(arrivee), chemin);
     }
 
-    /**
-     * Retourne un sommet par son nom.
-     */
-    public Sommet getSommet(String nom) {
-        return sommets.get(nom);
-    }
+    public Graphe copieProfonde() {
+        Graphe copie = new Graphe();
+        Set<String> dejaTraite = new HashSet<>();
 
-    /**
-     * Getter indispensable : permet à Dijkstra d'accéder
-     * à la collection des sommets sans violer l’encapsulation.
-     */
-    public Collection<Sommet> getSommets() {
-        return sommets.values();
+        for (String s : this.getSommets()) {
+            for (Arete a : this.getVoisins(s)) {
+                if (s.compareTo(a.destination) < 0) {
+                    copie.ajouterRoute(s, a.destination, a.distance);
+                }
+            }
+        }
+        return copie;
     }
 }

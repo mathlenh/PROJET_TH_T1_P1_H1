@@ -1,31 +1,86 @@
+import java.util.List;
+import java.util.*;
+
 public class Main {
     public static void main(String[] args) {
+        // graphe fictif
+        Graphe ville = new Graphe();
 
-        Graphe g = new Graphe();
+        ville.ajouterRoute("Depot", "A", 100);
+        ville.ajouterRoute("Depot", "B", 150);
+        ville.ajouterRoute("A", "B", 80);
+        ville.ajouterRoute("B", "C", 50);
+        ville.ajouterRoute("C", "Depot", 200);
+        ville.ajouterRoute("A", "D", 120);
+        ville.ajouterRoute("C", "E", 100);
 
-        // Création des sommets (ex : centre de traitement + intersections)
-        Sommet CT = g.ajouterSommet("Centre");
-        Sommet A = g.ajouterSommet("A");
-        Sommet B = g.ajouterSommet("B");
-        Sommet C = g.ajouterSommet("C");
-        Sommet Maison = g.ajouterSommet("Maison");
+        Algo solveur = new Algo(ville);
+        Scanner scanner = new Scanner(System.in);
+        int choix = 0;
 
-        // Ajout des routes (arcs pondérés)
-        CT.ajouterArc(A, 4);
-        CT.ajouterArc(B, 2);
-        A.ajouterArc(C, 3);
-        B.ajouterArc(A, 1);
-        B.ajouterArc(C, 4);
-        C.ajouterArc(Maison, 5);
+        do {
+            System.out.println("  GESTION DES DECHETS - THEME 1         ");
+            System.out.println("1. Problématique 1 ");
+            System.out.println("2. Problématique 2 ");
+            System.out.println("3. Quitter");
+            System.out.print("\nVotre choix : ");
 
-        // Lancement de Dijkstra
-        Dijkstra.calculer(g, CT);
+            try {
+                choix = scanner.nextInt();
+            } catch (InputMismatchException e) {
+                System.out.println("Erreur");
+                scanner.next();
+                continue;
+            }
 
-        // Chemin vers la maison
-        System.out.println("Distance minimale : " +
-                Dijkstra.distances.get(Maison) + " km");
+            switch (choix) {
+                case 1:
+                    lancerProb1Encombrants(ville, solveur);
+                    break;
+                case 2:
+                    lancerProb2Poubelles(solveur);
+                    break;
+                case 3:
+                    System.out.println("Fin");
+                    break;
+                default:
+                    System.out.println("Choix invalide");
+            }
 
-        System.out.println("Chemin : " +
-                Dijkstra.reconstruireChemin(Maison));
+        } while (choix != 3);
+
+        scanner.close();
+    }
+
+    private static void lancerProb1Encombrants(Graphe ville, Algo solveur) {
+        System.out.println("\n [PROB 1] ");
+
+        List<String> maisonsPossibles = new ArrayList<>(ville.getSommets());
+        maisonsPossibles.remove("Depot");
+
+        if (maisonsPossibles.isEmpty()) {
+            System.out.println("Erreur");
+            return;
+        }
+
+        Collections.shuffle(maisonsPossibles);
+        int nbClients = Math.min(3, maisonsPossibles.size());
+        List<String> clients = maisonsPossibles.subList(0, nbClients);
+
+        System.out.println("Points de passage : " + clients);
+        solveur.resoudreEncombrants("Depot", clients);
+
+        System.out.println("\n(Entree pour le menu...)");
+        try { System.in.read(); } catch(Exception e){}
+    }
+
+    // --- SOUS-METHODE POUR LA PROBLEMATIQUE 2 ---
+    private static void lancerProb2Poubelles(Algo solveur) {
+        System.out.println("\n [PROB 2] ");
+
+        solveur.resoudrePoubelles("Depot");
+
+        System.out.println("\n(Entree pour le menu)");
+        try { System.in.read(); } catch(Exception e){}
     }
 }
