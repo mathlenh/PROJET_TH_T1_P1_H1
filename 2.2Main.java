@@ -4,6 +4,7 @@ import java.io.*;
 public class Main {
 
     static final int INF = 999;
+    static final int CAPACITY = 10; // capacité du camion
 
     // structure d’arête simple
     static class Edge {
@@ -92,7 +93,7 @@ public class Main {
         ArrayList<Integer> walk = new ArrayList<>();
         dfsWalk(depot, -1, adj, walk);
 
-        System.out.println("\nParcours complet DFS (aller + retour dans le MST) :");
+        System.out.println("\nParcours complet DFS (aller + retour) :");
         for (int i = 0; i < walk.size(); i++) {
             System.out.print(names[walk.get(i)]);
             if (i < walk.size() - 1) System.out.print(" → ");
@@ -100,13 +101,14 @@ public class Main {
 
         // Ajouter retour final au dépôt
         walk.add(depot);
+
         System.out.println("\n\nAvec retour final :");
         for (int i = 0; i < walk.size(); i++) {
             System.out.print(names[walk.get(i)]);
             if (i < walk.size() - 1) System.out.print(" → ");
         }
 
-        // SHORTCUTTING : on garde chaque sommet la première fois
+        // SHORTCUTTING : ne garder qu’une fois chaque sommet
         ArrayList<Integer> tour = new ArrayList<>();
         boolean[] used = new boolean[n];
 
@@ -116,7 +118,6 @@ public class Main {
                 used[v] = true;
             }
         }
-        // et on revient au dépôt
         tour.add(depot);
 
         System.out.println("\n\nTournée finale après shortcutting :");
@@ -125,37 +126,58 @@ public class Main {
             if (i < tour.size() - 1) System.out.print(" → ");
         }
 
-        // calcul distance totale AVEC DIJKSTRA
-        int total = 0;
-        for (int i = 0; i < tour.size() - 1; i++) {
-            int a = tour.get(i);
-            int b = tour.get(i+1);
-            int d = dijkstra(a, b, mat);
-            total += d;
+        // --- Découpage en tournées (capacités) ---
+        ArrayList<ArrayList<Integer>> realTours = splitByCapacity(tour, quantities);
+
+        System.out.println("\n\nDécoupage par capacité (C = " + CAPACITY + ") :");
+        for (int i = 0; i < realTours.size(); i++) {
+            System.out.print("T" + (i+1) + " : D → ");
+            for (int v : realTours.get(i)) {
+                System.out.print(names[v] + " → ");
+            }
+            System.out.println("D");
         }
 
-        System.out.println("\n\nDistance totale = " + total);
+        // --- Distance par tournée ---
+        System.out.println("\nDistance de chaque tournée :");
+        for (int i = 0; i < realTours.size(); i++) {
+            ArrayList<Integer> t = realTours.get(i);
+            int dist = 0;
+
+            // D -> premier
+            dist += dijkstra(depot, t.get(0), mat);
+
+            // entre les points
+            for (int j = 0; j < t.size() - 1; j++) {
+                dist += dijkstra(t.get(j), t.get(j+1), mat);
+            }
+
+            // dernier -> D
+            dist += dijkstra(t.get(t.size()-1), depot, mat);
+
+            System.out.println("T" + (i+1) + " = " + dist);
+        }
     }
 
     // union-find simple
     static int find(int[] parent, int x) {
-        while (parent[x] != x) x = parent[x];
+        while (parent[x] != x) x = x;
         return x;
     }
 
-    // DFS WALK : aller + retour (comme dans ton raisonnement manuel)
+    // DFS WALK : aller + retour dans le MST
     static void dfsWalk(int u, int parent, ArrayList<Integer>[] adj, ArrayList<Integer> walk) {
-        walk.add(u); // on entre dans le sommet
+        walk.add(u);
 
         for (int v : adj[u]) {
             if (v != parent) {
-                dfsWalk(v, u, adj, walk); // descente
-                walk.add(u); // retour vers le parent
+                dfsWalk(v, u, adj, walk);
+                walk.add(u);
             }
         }
     }
 
-    // DIJKSTRA simple pour trouver la distance réelle
+    // DIJKSTRA simple
     static int dijkstra(int start, int end, int[][] mat) {
         int n = mat.length;
         int[] dist = new int[n];
@@ -180,13 +202,41 @@ public class Main {
 
             for (int v = 0; v < n; v++) {
                 if (mat[u][v] != INF) {
-                    if (dist[u] + mat[u][v] < dist[v]) {
-                        dist[v] = dist[u] + mat[u][v];
-                    }
+                    dist[v] = Math.min(dist[v], dist[u] + mat[u][v]);
                 }
             }
         }
 
         return dist[end];
+    }
+
+    // Découpage en tournées selon capacité
+    static ArrayList<ArrayList<Integer>> splitByCapacity(
+            ArrayList<Integer> tour, int[] quantities)
+    {
+        ArrayList<ArrayList<Integer>> tours = new ArrayList<>();
+        ArrayList<Integer> current = new ArrayList<>();
+        int load = 0;
+
+        for (int v : tour) {
+            if (quantities[v] == 0 && current.isEmpty()) continue;
+
+            int q = quantities[v];
+
+            if (load + q > CAPACITY) {
+                tours.add(new ArrayList<>(current));
+                current.clear();
+                load = 0;
+            }
+
+            current.add(v);
+            load += q;
+        }
+
+        if (!current.isEmpty()) {
+            tours.add(current);
+        }
+
+        return tours;
     }
 }
