@@ -49,7 +49,7 @@ public class Main {
             }
         }
 
-        // tri par poids
+        // tri par poids (Kruskal)
         Collections.sort(edges, (a,b) -> a.w - b.w);
 
         // union-find pour Kruskal
@@ -118,6 +118,7 @@ public class Main {
                 used[v] = true;
             }
         }
+        // retour au dépôt
         tour.add(depot);
 
         System.out.println("\n\nTournée finale après shortcutting :");
@@ -126,8 +127,16 @@ public class Main {
             if (i < tour.size() - 1) System.out.print(" → ");
         }
 
+        // --- Préparer la liste des points SANS les D pour le découpage capacité ---
+        ArrayList<Integer> tourPoints = new ArrayList<>();
+        for (int v : tour) {
+            if (v != depot) { // on enlève tous les D
+                tourPoints.add(v);
+            }
+        }
+
         // --- Découpage en tournées (capacités) ---
-        ArrayList<ArrayList<Integer>> realTours = splitByCapacity(tour, quantities);
+        ArrayList<ArrayList<Integer>> realTours = splitByCapacity(tourPoints, quantities);
 
         System.out.println("\n\nDécoupage par capacité (C = " + CAPACITY + ") :");
         for (int i = 0; i < realTours.size(); i++) {
@@ -144,7 +153,7 @@ public class Main {
             ArrayList<Integer> t = realTours.get(i);
             int dist = 0;
 
-            // D -> premier
+            // D -> premier point
             dist += dijkstra(depot, t.get(0), mat);
 
             // entre les points
@@ -152,16 +161,18 @@ public class Main {
                 dist += dijkstra(t.get(j), t.get(j+1), mat);
             }
 
-            // dernier -> D
+            // dernier point -> D
             dist += dijkstra(t.get(t.size()-1), depot, mat);
 
             System.out.println("T" + (i+1) + " = " + dist);
         }
     }
 
-    // union-find simple
+    // union-find simple corrigé
     static int find(int[] parent, int x) {
-        while (parent[x] != x) x = x;
+        while (parent[x] != x) {
+            x = parent[x];
+        }
         return x;
     }
 
@@ -202,7 +213,9 @@ public class Main {
 
             for (int v = 0; v < n; v++) {
                 if (mat[u][v] != INF) {
-                    dist[v] = Math.min(dist[v], dist[u] + mat[u][v]);
+                    if (dist[u] + mat[u][v] < dist[v]) {
+                        dist[v] = dist[u] + mat[u][v];
+                    }
                 }
             }
         }
@@ -212,18 +225,16 @@ public class Main {
 
     // Découpage en tournées selon capacité
     static ArrayList<ArrayList<Integer>> splitByCapacity(
-            ArrayList<Integer> tour, int[] quantities)
+            ArrayList<Integer> order, int[] quantities)
     {
         ArrayList<ArrayList<Integer>> tours = new ArrayList<>();
         ArrayList<Integer> current = new ArrayList<>();
         int load = 0;
 
-        for (int v : tour) {
-            if (quantities[v] == 0 && current.isEmpty()) continue;
-
+        for (int v : order) {
             int q = quantities[v];
 
-            if (load + q > CAPACITY) {
+            if (load + q > CAPACITY && !current.isEmpty()) {
                 tours.add(new ArrayList<>(current));
                 current.clear();
                 load = 0;
