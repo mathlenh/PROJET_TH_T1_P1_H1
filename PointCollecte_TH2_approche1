@@ -1,0 +1,19 @@
+public class PointCollecte {
+
+    private int id;
+    private String nom;
+    private int contenance;
+
+    public PointCollecte(int id, String nom, int contenance) {
+        this.id = id;
+        this.nom = nom;
+        this.contenance = contenance;
+    }
+
+    public int getId() { return id; }
+    public String getNom() { return nom; }
+    public int getContenance() { return contenance; }
+
+    @Override
+    public String toString() { return nom; }
+}
