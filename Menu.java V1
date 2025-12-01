@@ -1,0 +1,129 @@
+import java.util.Scanner;
+
+public class MenuEntreprise {
+
+    private static Graphe graphe = null;
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+        int choix = -1;
+
+        while (choix != 4) {
+
+            System.out.println("\n==========================================");
+            System.out.println("   SYSTÈME D’OPTIMISATION DE COLLECTE");
+            System.out.println("              (Entreprise)");
+            System.out.println("==========================================");
+            System.out.println("1 — Charger un graphe (fichier .txt)");
+            System.out.println("2 — Thème 1 : Collecte aux pieds des habitations");
+            System.out.println("3 — Thème 2 : Points de collecte");
+            System.out.println("4 — Quitter");
+            System.out.println("------------------------------------------");
+            System.out.print("Votre choix : ");
+
+            choix = sc.nextInt();
+            sc.nextLine(); // vider buffer
+
+            switch (choix) {
+                case 1:
+                    chargerGraphe(sc);
+                    break;
+
+                case 2:
+                    menuTheme1(sc);
+                    break;
+
+                case 3:
+                    menuTheme2(sc);
+                    break;
+
+                case 4:
+                    System.out.println("Fermeture du système...");
+                    break;
+
+                default:
+                    System.out.println("Choix invalide.");
+            }
+        }
+
+        sc.close();
+    }
+
+
+    // ============================================================
+    // CHARGEMENT DU GRAPHE
+    // ============================================================
+
+    private static void chargerGraphe(Scanner sc) {
+        System.out.print("Nom du fichier texte : ");
+        String fichier = sc.nextLine();
+
+        try {
+            graphe = GrapheLoader.fromTxt(fichier);
+            System.out.println("✔ Graphe chargé avec succès !");
+        } catch (Exception e) {
+            System.out.println("❌ Erreur lors du chargement : " + e.getMessage());
+        }
+    }
+
+    // ============================================================
+    // MENU THEME 1
+    // ============================================================
+
+    private static void menuTheme1(Scanner sc) {
+        if (graphe == null) {
+            System.out.println("⚠ Vous devez charger un graphe avant.");
+            return;
+        }
+
+        System.out.println("\n--- Thème 1 : Collecte aux pieds des habitations ---");
+        System.out.println("1 — Problématique 1 : Encombrants");
+        System.out.println("2 — Problématique 2 : Collecte complète");
+        System.out.print("Votre choix : ");
+
+        int choix = sc.nextInt();
+        sc.nextLine();
+
+        switch (choix) {
+            case 1:
+                new Problematique1(graphe).executer();
+                break;
+            case 2:
+                new Problematique2(graphe).executer();
+                break;
+            default:
+                System.out.println("Choix invalide.");
+        }
+    }
+
+    // ============================================================
+    // MENU THEME 2
+    // ============================================================
+
+    private static void menuTheme2(Scanner sc) {
+        if (graphe == null) {
+            System.out.println("⚠ Vous devez charger un graphe avant.");
+            return;
+        }
+
+        System.out.println("\n--- Thème 2 : Points de collecte ---");
+        System.out.println("1 — Approche 1 : Plus proche voisin");
+        System.out.println("2 — Approche 2 : Méthode MST");
+        System.out.print("Votre choix : ");
+
+        int choix = sc.nextInt();
+        sc.nextLine();
+
+        switch (choix) {
+            case 1:
+                new Approche1(graphe).executer();
+                break;
+            case 2:
+                new Approche2(graphe).executer();
+                break;
+            default:
+                System.out.println("Choix invalide.");
+        }
+    }
+}
