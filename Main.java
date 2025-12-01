@@ -33,11 +33,20 @@ public class Main {
             }
 
             if (choix == 1 || choix == 2) {
+                String nomDepot = "Gare_Massy_Palaiseau";
+
+                if (!ville.getSommets().contains(nomDepot)) {
+                    System.out.println("Erreur : Le dépôt '" + nomDepot + "' n'existe pas dans le fichier !");
+                    nomDepot = ville.getSommets().iterator().next();
+                    System.out.println("Utilisation d'un dépôt par défaut : " + nomDepot);
+                }
+
                 List<String> maisons = new ArrayList<>(ville.getSommets());
-                maisons.remove("Depot");
+
+                maisons.remove(nomDepot);
 
                 if (maisons.isEmpty()) {
-                    System.out.println("Erreur");
+                    System.out.println("Erreur : pas assez de maisons.");
                     continue;
                 }
 
@@ -48,11 +57,11 @@ public class Main {
                 System.out.println("\n--> Clients : " + clients);
 
                 if (choix == 1) {
-                    solveur.resoudreHypothese1("Depot", clients);
+                    solveur.resoudreHypothese1(nomDepot, clients);
                 } else {
                     System.out.print("Capacite du camion : ");
                     int capa = scanner.nextInt();
-                    solveur.resoudreHypothese2("Depot", clients, capa);
+                    solveur.resoudreHypothese2(nomDepot, clients, capa);
                 }
 
                 System.out.println("\n(Entree pour continuer)");
@@ -82,16 +91,16 @@ public class Main {
                     int distance = Integer.parseInt(parties[2].trim());
 
                     g.ajouterRoute(depart, arrivee, distance);
-                    }
+                }
             }
-            System.out.println("Graphe" + g.getSommets().size() + " sommets.");
+            System.out.println("Graphe " + g.getSommets().size() + " sommets.");
             return g;
 
         } catch (IOException e) {
             System.out.println("Erreur " + e.getMessage());
             return null;
         } catch (NumberFormatException e) {
-            System.out.println("Erreur");
+            System.out.println("Erreur format");
             return null;
         }
     }
