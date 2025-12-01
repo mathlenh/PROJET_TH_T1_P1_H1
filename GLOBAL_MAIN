@@ -1,0 +1,171 @@
+import java.util.*;
+import java.io.*;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+
+        Scanner sc = new Scanner(System.in);
+
+        // ======================================================
+        //               CHARGEMENT DU GRAPHE
+        // ======================================================
+        Graphe g = new Graphe();
+        try {
+            g.charger("massy.txt");
+        } catch (Exception e) {
+            System.out.println("Erreur : " + e.getMessage());
+            return;
+        }
+
+        System.out.println("\n==============================================");
+        System.out.println("  PROGRAMME GLOBAL — THÉORIE DES GRAPHES");
+        System.out.println("==============================================\n");
+
+        while (true) {
+
+            System.out.println("\n===== MENU PRINCIPAL =====");
+            System.out.println("1. Thème 1 — Problématique 1 — Hypothèse 1 (Aller/Retour)");
+            System.out.println("2. Thème 1 — Problématique 1 — Hypothèse 2 (Tournées gloutonnes)");
+            System.out.println("3. Thème 1 — Problématique 2 (Plus court chemin simple)");
+            System.out.println("4. Thème 2 — Approche 1 (Voisin Proche)");
+            System.out.println("5. Thème 2 — Approche 2 (MST + Shortcut + Dijkstra)");
+            System.out.println("0. Quitter");
+
+            System.out.print("\nVotre choix : ");
+            int choix = sc.nextInt();
+            sc.nextLine();
+
+            if (choix == 0) break;
+
+            switch (choix) {
+
+                // ============================================================
+                //        THÈME 1 — PROBLÉMATIQUE 1 — HYPOTHÈSE 1
+                // ============================================================
+                case 1 -> {
+                    String depot = demanderDepot(g, sc);
+                    List<String> clients = demanderClients(g, depot, sc);
+
+                    Encombrants.hypothese1(g, depot, clients);
+                }
+
+                // ============================================================
+                //        THÈME 1 — PROBLÉMATIQUE 1 — HYPOTHÈSE 2
+                // ============================================================
+                case 2 -> {
+                    String depot = demanderDepot(g, sc);
+                    List<String> clients = demanderClients(g, depot, sc);
+
+                    System.out.print("Capacité du camion : ");
+                    int cap = sc.nextInt();
+                    sc.nextLine();
+
+                    Encombrants.hypothese2(g, depot, clients, cap);
+                }
+
+                // ============================================================
+                //      THÈME 1 — PROBLÉMATIQUE 2 (PCC SIMPLE)
+                // ============================================================
+                case 3 -> {
+                    System.out.println("\nListe des sommets disponibles :");
+                    for (int i = 0; i < g.taille(); i++)
+                        System.out.println("- " + g.getNom(i));
+
+                    System.out.print("\nSommet de départ : ");
+                    String A = sc.nextLine();
+                    System.out.print("Sommet d'arrivée : ");
+                    String B = sc.nextLine();
+
+                    int s = g.getIndex(A);
+                    int t = g.getIndex(B);
+
+                    Dijkstra.run(g, s);
+                    List<Integer> chemin = Dijkstra.chemin(t);
+
+                    System.out.println("\nChemin trouvé :");
+                    afficherChemin(g, chemin);
+                    System.out.println("Distance totale : " + Dijkstra.distanceTo(t) + "m\n");
+                }
+
+                // ============================================================
+                //      THÈME 2 — APPROCHE 1 (VOISIN PROCHE)
+                // ============================================================
+                case 4 -> {
+                    String depot = demanderDepot(g, sc);
+                    int d = g.getIndex(depot);
+
+                    List<Integer> tour = VoisinProche.tournee(g, d);
+
+                    VoisinProche.afficherTournee(g, tour);
+                }
+
+                // ============================================================
+                //      THÈME 2 — APPROCHE 2 (MST + SHORTCUT + PCC)
+                // ============================================================
+                case 5 -> {
+                    String depot = demanderDepot(g, sc);
+                    int d = g.getIndex(depot);
+
+                    MST mst = new MST(g);
+                    mst.afficherMST(g);
+
+                    System.out.println("Construction du parcours (DFS)...");
+                    List<Integer> marche = mst.dfsComplet(d);
+
+                    System.out.println("Shortcutting...");
+                    List<Integer> ordre = mst.shortcut(marche);
+
+                    System.out.println("Construction du véritable itinéraire (Dijkstra orienté)...");
+                    List<Integer> itin = mst.construireItineraire(g, ordre, d);
+
+                    System.out.println("\nItinéraire final :");
+                    afficherChemin(g, itin);
+                }
+
+                default -> System.out.println("Choix invalide.");
+            }
+        }
+
+        System.out.println("\nProgramme terminé.");
+    }
+
+
+    // ================================================================
+    //               MÉTHODES UTILITAIRES POUR LE MENU
+    // ================================================================
+
+    private static String demanderDepot(Graphe g, Scanner sc) {
+        System.out.println("\nListe des sommets disponibles :");
+        for (int i = 0; i < g.taille(); i++)
+            System.out.println("- " + g.getNom(i));
+
+        System.out.print("\nNom du dépôt : ");
+        return sc.nextLine().trim();
+    }
+
+    private static List<String> demanderClients(Graphe g, String depot, Scanner sc) {
+        List<String> clients = new ArrayList<>();
+
+        System.out.println("\nCombien de clients souhaitez-vous ajouter ?");
+        int k = sc.nextInt();
+        sc.nextLine();
+
+        for (int i = 0; i < k; i++) {
+            System.out.print("Nom du client " + (i + 1) + " : ");
+            String c = sc.nextLine().trim();
+            if (!c.equals(depot))
+                clients.add(c);
+        }
+
+        return clients;
+    }
+
+    private static void afficherChemin(Graphe g, List<Integer> c) {
+        for (int i = 0; i < c.size(); i++) {
+            System.out.print(g.getNom(c.get(i)));
+            if (i < c.size() - 1) System.out.print(" -> ");
+        }
+        System.out.println();
+    }
+}
