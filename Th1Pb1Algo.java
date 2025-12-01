@@ -27,14 +27,14 @@ public class Algo {
     }
 
     public void resoudreHypothese2(String depot, List<String> clients, int capaciteMax) {
-        System.out.println("\n HYPOTHESE 2 : (Capacité : " + capaciteMax + ") ===");
+        System.out.println("\n HYPOTHESE 2 : (Capacite : " + capaciteMax + ") ===");
 
         List<String> aTraiter = new ArrayList<>(clients);
         int distanceTotale = 0;
         int numTournee = 1;
 
         while (!aTraiter.isEmpty()) {
-            System.out.println("\n>> Démarrage Tournée n" + numTournee);
+            System.out.println("\n>> Tournee " + numTournee);
             String position = depot;
             int chargement = 0;
             List<String> trajetTournee = new ArrayList<>();
@@ -65,7 +65,7 @@ public class Algo {
                     if (cheminVersClient.size() > 1) {
                         trajetTournee.addAll(cheminVersClient.subList(1, cheminVersClient.size()));
                     }
-                    System.out.println("   + Collecte à " + meilleurClient + " (Distance: " + minDist + "m)");
+                    System.out.println("   + Collecte a " + meilleurClient + " (Distance: " + minDist + "m)");
                 }
             }
 
@@ -76,11 +76,11 @@ public class Algo {
                 trajetTournee.addAll(retour.chemin.subList(1, retour.chemin.size()));
             }
 
-            System.out.println("   -> Retour au dépôt (" + retour.distance + "m)");
-            System.out.println("   Bilan Tournée : " + trajetTournee);
+            System.out.println("   -> Retour (" + retour.distance + "m)");
+            System.out.println("   Bilan Tournee : " + trajetTournee);
             numTournee++;
         }
 
-        System.out.println("\nDISTANCE TOTALE (Hypothèse 2) : " + distanceTotale + "m");
+        System.out.println("\nDISTANCE TOTALE (Hypothese 2) : " + distanceTotale + "m");
     }
 }
