@@ -1,0 +1,69 @@
+import java.util.*;
+
+public class Dijkstra {
+
+    private static int[] dist;
+    private static int[] parent;
+
+    // =====================================================
+    //         DIJKSTRA SUR LE GRAPHE ORIENTÉ
+    // =====================================================
+    public static void run(Graphe g, int source) {
+
+        int n = g.taille();
+        dist = new int[n];
+        parent = new int[n];
+        boolean[] visited = new boolean[n];
+
+        Arrays.fill(dist, 999999);
+        Arrays.fill(parent, -1);
+
+        dist[source] = 0;
+
+        for (int rep = 0; rep < n; rep++) {
+
+            // ---- Trouver sommet non visité de distance minimale ----
+            int u = -1;
+            for (int i = 0; i < n; i++) {
+                if (!visited[i] && (u == -1 || dist[i] < dist[u])) {
+                    u = i;
+                }
+            }
+
+            if (u == -1) break;
+
+            visited[u] = true;
+
+            // ---- Relaxation ----
+            for (int[] arc : g.getVoisinsOriente(u)) {
+                int v = arc[0];
+                int w = arc[1];
+
+                if (!visited[v] && dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    parent[v] = u;
+                }
+            }
+        }
+    }
+
+    // =====================================================
+    //                RECONSTRUCTION DE CHEMIN
+    // =====================================================
+    public static List<Integer> chemin(int dest) {
+        List<Integer> path = new ArrayList<>();
+        while (dest != -1) {
+            path.add(dest);
+            dest = parent[dest];
+        }
+        Collections.reverse(path);
+        return path;
+    }
+
+    // =====================================================
+    //       Distance directe après un Dijkstra.run()
+    // =====================================================
+    public static int distanceTo(int dest) {
+        return dist[dest];
+    }
+}
