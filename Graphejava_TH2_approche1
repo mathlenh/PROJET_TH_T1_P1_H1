@@ -1,0 +1,16 @@
+public class Graphe {
+
+    private PointCollecte[] points;
+    private int[][] adj; 
+
+    public Graphe(PointCollecte[] points, int[][] adj) {
+        this.points = points;
+        this.adj = adj;
+    }
+
+    public int taille() { return points.length; }
+
+    public int getDistance(int i, int j) { return adj[i][j]; }
+
+    public PointCollecte getPoint(int i) { return points[i]; }
+}
