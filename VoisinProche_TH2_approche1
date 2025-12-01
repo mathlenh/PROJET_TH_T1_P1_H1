@@ -1,0 +1,92 @@
+import java.util.*;
+
+public class VoisinProche {
+
+    public static int[][] dijkstra(Graphe g, int source) {
+
+        int n = g.taille();
+        int[] dist = new int[n];
+        int[] parent = new int[n];
+        boolean[] visited = new boolean[n];
+
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        Arrays.fill(parent, -1);
+
+        dist[source] = 0;
+
+        for (int k = 0; k < n; k++) {
+
+            int u = -1;
+            for (int i = 0; i < n; i++) {
+                if (!visited[i] && (u == -1 || dist[i] < dist[u])) {
+                    u = i;
+                }
+            }
+
+            visited[u] = true;
+
+            for (int v = 0; v < n; v++) {
+                int w = g.getDistance(u, v);
+                if (w != -1 && !visited[v] && dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    parent[v] = u;
+                }
+            }
+        }
+
+        return new int[][] { dist, parent };
+    }
+
+    public static List<Integer> reconstruire(int[] parent, int dest) {
+        List<Integer> path = new ArrayList<>();
+        int c = dest;
+        while (c != -1) { path.add(c); c = parent[c]; }
+        Collections.reverse(path);
+        return path;
+    }
+
+    public static List<Integer> tournee(Graphe g, int depart) {
+
+        int n = g.taille();
+        boolean[] visited = new boolean[n];
+        List<Integer> tour = new ArrayList<>();
+
+        int courant = depart;
+        visited[courant] = true;
+        tour.add(courant);
+
+        for (int step = 1; step < n; step++) {
+
+            int[][] res = dijkstra(g, courant);
+            int[] dist = res[0];
+            int[] parent = res[1];
+
+            int next = -1;
+            int best = Integer.MAX_VALUE;
+
+            for (int i = 0; i < n; i++) {
+                if (!visited[i] && dist[i] < best) {
+                    best = dist[i];
+                    next = i;
+                }
+            }
+
+            List<Integer> segment = reconstruire(parent, next);
+            segment.remove(0);
+            tour.addAll(segment);
+
+            visited[next] = true;
+            courant = next;
+        }
+// Retour vers le point de départ
+        int[][] resRetour = dijkstra(g, courant);
+        int[] distRetour = resRetour[0];
+        int[] parentRetour = resRetour[1];
+
+        List<Integer> retour = reconstruire(parentRetour, depart);
+        retour.remove(0); // éviter de répéter le sommet courant
+        tour.addAll(retour);
+
+        return tour;
+    }
+}
