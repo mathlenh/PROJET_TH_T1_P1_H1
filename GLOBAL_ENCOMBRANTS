@@ -1,0 +1,137 @@
+import java.util.*;
+
+public class Encombrants {
+
+    // =====================================================
+    //     HYPOTHESE 1 : Aller-retour individuel
+    // =====================================================
+    public static void hypothese1(Graphe g, String depotNom, List<String> clients) {
+
+        int depot = g.getIndex(depotNom);
+
+        System.out.println("\n===========================================");
+        System.out.println("  HYPOTHÈSE 1 : ALLER-RETOUR INDIVIDUEL");
+        System.out.println("===========================================\n");
+
+        int total = 0;
+
+        for (String cliNom : clients) {
+
+            int cli = g.getIndex(cliNom);
+
+            // -------- Aller --------
+            Dijkstra.run(g, depot);
+            int aller = Dijkstra.distanceTo(cli);
+
+            List<Integer> cheminAller = Dijkstra.chemin(cli);
+
+            // -------- Retour --------
+            Dijkstra.run(g, cli);
+            int retour = Dijkstra.distanceTo(depot);
+
+            List<Integer> cheminRetour = Dijkstra.chemin(depot);
+
+            System.out.println("Client : " + cliNom);
+            System.out.println("  Aller  : " + formatChemin(g, cheminAller) + " ( " + aller + " m )");
+            System.out.println("  Retour : " + formatChemin(g, cheminRetour) + " ( " + retour + " m )");
+
+            total += aller + retour;
+        }
+
+        System.out.println("\n>>> Distance totale cumulée = " + total + " m\n");
+    }
+
+
+    // =====================================================
+    //     HYPOTHESE 2 : tournée gloutonne + capacité
+    // =====================================================
+    public static void hypothese2(Graphe g, String depotNom, List<String> clients, int capacite) {
+
+        System.out.println("\n===========================================");
+        System.out.println("   HYPOTHÈSE 2 : TOURNÉES GLOUTONNES");
+        System.out.println("===========================================\n");
+
+        int depot = g.getIndex(depotNom);
+
+        List<Integer> aFaire = new ArrayList<>();
+        for (String c : clients)
+            aFaire.add(g.getIndex(c));
+
+        int total = 0;
+        int tour = 1;
+
+        while (!aFaire.isEmpty()) {
+
+            System.out.println(">> TOURNEE " + tour);
+            int cap = 0;
+            int courant = depot;
+
+            List<Integer> cheminTournee = new ArrayList<>();
+            cheminTournee.add(courant);
+
+            while (cap < capacite && !aFaire.isEmpty()) {
+
+                int meilleur = -1;
+                int bestDist = 999999;
+                List<Integer> meilleurChemin = null;
+
+                // -------- Cherche le client le plus proche --------
+                for (int c : aFaire) {
+                    Dijkstra.run(g, courant);
+                    int d = Dijkstra.distanceTo(c);
+
+                    if (d < bestDist) {
+                        bestDist = d;
+                        meilleur = c;
+                        meilleurChemin = Dijkstra.chemin(c);
+                    }
+                }
+
+                // -------- Si pas de chemin trouvé --------
+                if (meilleur == -1) break;
+
+                // -------- Ajoute ce segment --------
+                meilleurChemin.remove(0);
+                cheminTournee.addAll(meilleurChemin);
+
+                courant = meilleur;
+                cap += 1;
+                total += bestDist;
+
+                System.out.println("  + collecte à " + g.getNom(meilleur) + " (dist=" + bestDist + ")");
+
+                aFaire.remove((Integer) meilleur);
+            }
+
+            // -------- Retour au dépôt --------
+            Dijkstra.run(g, courant);
+            int ret = Dijkstra.distanceTo(depot);
+            total += ret;
+
+            List<Integer> cheminRetour = Dijkstra.chemin(depot);
+            cheminRetour.remove(0);
+            cheminTournee.addAll(cheminRetour);
+
+            System.out.println("  -> retour au dépôt (" + ret + " m)");
+            System.out.println("  TRAJET : " + formatChemin(g, cheminTournee) + "\n");
+
+            tour++;
+        }
+
+        System.out.println(">>> Distance totale = " + total + " m\n");
+    }
+
+
+    // =====================================================
+    //           OUTIL AFFICHAGE DE CHEMIN
+    // =====================================================
+    private static String formatChemin(Graphe g, List<Integer> L) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int x : L) {
+            sb.append(g.getNom(x)).append(" -> ");
+        }
+        if (sb.length() >= 4) sb.setLength(sb.length() - 4);
+        sb.append("]");
+        return sb.toString();
+    }
+}
