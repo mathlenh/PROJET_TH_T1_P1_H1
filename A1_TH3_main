@@ -1,0 +1,24 @@
+import java.util.*;
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        try {
+            Graphe g = new Graphe("graph.txt");
+
+            Map<String, Integer> colored = WelshPowell.colorGraph(g);
+
+            List<Map.Entry<String, Integer>> list = new ArrayList<>(colored.entrySet());
+            list.sort(Map.Entry.comparingByValue());
+
+            System.out.println("=== Coloration Welsh & Powell (triée) ===");
+            for (var e : list) {
+                System.out.println(e.getKey() + " → Jour " + e.getValue());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
