@@ -1,0 +1,32 @@
+public class Sommet implements Comparable<Sommet> {
+
+    private String nom;
+    private int quantite;
+    private int couleur;
+    private int degre;
+
+    public Sommet(String nom, int quantite) {
+        this.nom = nom;
+        this.quantite = quantite;
+        this.couleur = 0; // non colorié
+        this.degre = 0;
+    }
+
+    public String getNom() { return nom; }
+    public int getQuantite() { return quantite; }
+    public int getCouleur() { return couleur; }
+    public int getDegre() { return degre; }
+
+    public void setCouleur(int c) { this.couleur = c; }
+    public void setDegre(int d) { this.degre = d; }
+
+    @Override
+    public int compareTo(Sommet s) {
+        return Integer.compare(s.getDegre(), this.degre); // tri décroissant
+    }
+
+    @Override
+    public String toString() {
+        return nom + " (q=" + quantite + ", deg=" + degre + ", col=" + couleur + ")";
+    }
+}
