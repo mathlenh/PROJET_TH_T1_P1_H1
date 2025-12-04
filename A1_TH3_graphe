@@ -1,0 +1,39 @@
+import java.io.*;
+import java.util.*;
+
+public class Graphe {
+
+    private Map<String, List<String>> adj = new HashMap<>();
+
+    public Graphe(String filename) throws Exception {
+        loadFromFile(filename);
+    }
+
+    private void loadFromFile(String filename) throws Exception {
+        BufferedReader br = new BufferedReader(new FileReader(filename));
+
+        int n = Integer.parseInt(br.readLine().trim());
+
+        for (int i = 0; i < n; i++) {
+            String line = br.readLine().trim();
+            String[] parts = line.split(" ");
+
+            String node = parts[0];
+            adj.putIfAbsent(node, new ArrayList<>());
+
+            for (int j = 1; j < parts.length; j++) {
+                String neighbor = parts[j];
+                adj.putIfAbsent(neighbor, new ArrayList<>());
+
+                adj.get(node).add(neighbor);
+                adj.get(neighbor).add(node);
+            }
+        }
+
+        br.close();
+    }
+
+    public Map<String, List<String>> getAdj() {
+        return adj;
+    }
+}
