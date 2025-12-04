@@ -1,0 +1,49 @@
+import java.util.*;
+
+public class WelshPowell {
+
+    public static HashMap<Integer, PlanningJour> colorierAvecCapacite(
+            Graphe g, int capaciteCamion, int nbCamions)
+    {
+        int capaciteMax = capaciteCamion * nbCamions;
+
+        // Recopie standard de Welsh & Powell
+        ArrayList<Sommet> liste = new ArrayList<>(g.getSommets().values());
+        Collections.sort(liste);
+
+        int couleur = 1;
+
+        for (Sommet s : liste) {
+            if (s.getCouleur() == 0) {
+                s.setCouleur(couleur);
+
+                for (Sommet autre : liste) {
+                    if (autre.getCouleur() == 0) {
+                        boolean ok = true;
+                        for (Sommet deja : liste) {
+                            if (deja.getCouleur() == couleur &&
+                                    g.sontAdjacents(autre.getNom(), deja.getNom())) {
+                                ok = false;
+                                break;
+                            }
+                        }
+                        if (ok) autre.setCouleur(couleur);
+                    }
+                }
+                couleur++;
+            }
+        }
+
+        // === Nouvelle partie : gestion de capacité ===
+        // Un PlanningJour pour chaque couleur attribuée
+        HashMap<Integer, PlanningJour> planning = new HashMap<>();
+
+        for (Sommet s : liste) {
+            int c = s.getCouleur();
+            planning.putIfAbsent(c, new PlanningJour(capaciteMax));
+            planning.get(c).ajouter(s);
+        }
+
+        return planning;
+    }
+}
