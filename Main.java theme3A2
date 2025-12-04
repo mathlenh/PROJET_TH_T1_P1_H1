@@ -1,0 +1,35 @@
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+
+        Graphe g = new Graphe();
+        g.lireFichier("src/secteurs.txt");
+
+        int capaciteCamion = 10;  // EXEMPLE
+        int nbCamions = 2;        // EXEMPLE
+
+        var planning = WelshPowell.colorierAvecCapacite(g, capaciteCamion, nbCamions);
+
+        System.out.println("\n=== Résultat complet ===");
+
+        for (int jour : planning.keySet()) {
+            System.out.println("Jour " + jour + " :");
+
+            int t = 1;
+            for (var tournee : planning.get(jour).getTournees()) {
+                System.out.print("   Tournée " + t + " : ");
+
+                int somme = 0;
+                for (Sommet s : tournee) {
+                    System.out.print(s.getNom() + "(" + s.getQuantite() + ") ");
+                    somme += s.getQuantite();
+                }
+
+                System.out.println(" -> Charge = " + somme);
+                t++;
+            }
+
+            System.out.println();
+        }
+    }
+}
