@@ -1,0 +1,34 @@
+import java.util.ArrayList;
+
+public class PlanningJour {
+
+    private int capaciteMax;
+    private ArrayList<ArrayList<Sommet>> tournees;
+
+    public PlanningJour(int capaciteMax) {
+        this.capaciteMax = capaciteMax;
+        this.tournees = new ArrayList<>();
+        this.tournees.add(new ArrayList<>()); // première tournée
+    }
+
+    // Tente d'ajouter un secteur à une tournée ; renvoie true si réussi
+    public boolean ajouter(Sommet s) {
+
+        for (ArrayList<Sommet> tournee : tournees) {
+            int somme = tournee.stream().mapToInt(x -> x.getQuantite()).sum();
+
+            if (somme + s.getQuantite() <= capaciteMax) {
+                tournee.add(s);
+                return true;
+            }
+        }
+
+        // Sinon on crée une nouvelle tournée
+        ArrayList<Sommet> nouvelle = new ArrayList<>();
+        nouvelle.add(s);
+        tournees.add(nouvelle);
+        return true;
+    }
+
+    public ArrayList<ArrayList<Sommet>> getTournees() { return tournees; }
+}
