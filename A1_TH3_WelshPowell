@@ -1,0 +1,45 @@
+import java.util.*;
+
+public class WelshPowell {
+
+    public static Map<String, Integer> colorGraph(Graphe g) {
+
+        Map<String, List<String>> adj = g.getAdj();
+
+        List<String> nodes = new ArrayList<>(adj.keySet());
+
+        nodes.sort((a, b) -> adj.get(b).size() - adj.get(a).size());
+
+        Map<String, Integer> color = new HashMap<>();
+        int currentColor = 1;
+
+        for (String node : nodes) {
+
+            if (!color.containsKey(node)) {
+                color.put(node, currentColor);
+
+                for (String other : nodes) {
+                    if (!color.containsKey(other)) {
+
+                        boolean conflict = false;
+
+                        for (String neighbor : adj.get(other)) {
+                            if (color.getOrDefault(neighbor, 0) == currentColor) {
+                                conflict = true;
+                                break;
+                            }
+                        }
+
+                        if (!conflict) {
+                            color.put(other, currentColor);
+                        }
+                    }
+                }
+
+                currentColor++;
+            }
+        }
+
+        return color;
+    }
+}
