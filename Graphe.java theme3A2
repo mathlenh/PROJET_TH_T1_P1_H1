@@ -1,0 +1,63 @@
+import java.io.*;
+import java.util.*;
+
+public class Graphe {
+
+    private final HashMap<String, Sommet> sommets = new HashMap<>();
+    private final HashMap<String, ArrayList<String>> adj = new HashMap<>();
+
+    public HashMap<String, Sommet> getSommets() { return sommets; }
+    public HashMap<String, ArrayList<String>> getAdj() { return adj; }
+
+    // Ajoute une arête non orientée
+    private void ajouterArete(String a, String b) {
+        adj.computeIfAbsent(a, k -> new ArrayList<>()).add(b);
+        adj.computeIfAbsent(b, k -> new ArrayList<>()).add(a);
+    }
+
+    // Lecture du fichier texte
+    public void lireFichier(String nomFichier) throws Exception {
+
+        BufferedReader br = new BufferedReader(new FileReader(nomFichier));
+
+        String ligne;
+
+        // Lire nombre de sommets
+        ligne = br.readLine().trim();
+        int nbSommets = Integer.parseInt(ligne);
+
+        // Lire les sommets (nom + quantité)
+        for (int i = 0; i < nbSommets; i++) {
+            ligne = br.readLine().trim();
+            String[] t = ligne.split(" ");
+            String nom = t[0];
+            int q = Integer.parseInt(t[1]);
+
+            sommets.put(nom, new Sommet(nom, q));
+            adj.put(nom, new ArrayList<>());
+        }
+
+        // Lire nombre d'arêtes
+        ligne = br.readLine().trim();
+        int nbAretes = Integer.parseInt(ligne);
+
+        // Lire les arêtes
+        for (int i = 0; i < nbAretes; i++) {
+            ligne = br.readLine().trim();
+            String[] t = ligne.split(" ");
+            ajouterArete(t[0], t[1]);
+        }
+
+        br.close();
+
+        // Calculer les degrés
+        for (String nom : sommets.keySet()) {
+            sommets.get(nom).setDegre(adj.get(nom).size());
+        }
+    }
+
+    // Deux sommets sont-ils adjacents ?
+    public boolean sontAdjacents(String s1, String s2) {
+        return adj.get(s1).contains(s2);
+    }
+}
