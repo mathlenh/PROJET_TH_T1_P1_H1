@@ -1,0 +1,48 @@
+import java.util.*;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("=== THEME 3 ===");
+        System.out.println("1) Hypothèse 1 : Coloration simple");
+        System.out.println("2) Hypothèse 2 : Coloration + capacités");
+        System.out.print("Votre choix : ");
+        int choix = sc.nextInt();
+
+        Graphe g = new Graphe();
+
+        if (choix == 1) {
+            g.lireGrapheSimple("src/graphe.txt");
+
+            var couleurs = WelshPowell.colorationSimple(g);
+
+            System.out.println("\n=== Résultat Hypothèse 1 ===");
+            for (String s : couleurs.keySet()) {
+                System.out.println(s + " → Jour " + couleurs.get(s));
+            }
+        }
+
+        else {
+            g.lireGrapheSimple("src/graphe.txt");
+            g.lireCollecte("src/collecte.txt");
+
+            var planning = WelshPowell.colorationAvecCapacite(g);
+
+            System.out.println("\n=== Résultat Hypothèse 2 ===");
+            for (int jour : planning.keySet()) {
+                System.out.println("Jour " + jour + " :");
+                int charge = 0;
+                for (Sommet s : planning.get(jour)) {
+                    charge += s.getQuantite();
+                    System.out.println(" → " + s.getNom()
+                            + " (qt=" + s.getQuantite()
+                            + ", secteur=" + s.getSecteur() + ")");
+                }
+                System.out.println(" Charge totale = " + charge + "\n");
+            }
+        }
+    }
+}
