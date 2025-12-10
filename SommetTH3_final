@@ -1,0 +1,43 @@
+public class Sommet implements Comparable<Sommet> {
+
+    private String nom;
+    private int quantite = 0;      // pour HP2
+    private String secteur = "";   // pour HP2
+
+    private int degre = 0;         // pour tri Welsh-Powell
+    private int couleur = 0;       // pour HP1
+
+    private boolean planned = false;  // HP2
+    private int jour = 0;             // HP2
+
+    public Sommet(String nom) {
+        this.nom = nom;
+    }
+
+    public Sommet(String nom, int qte) {
+        this.nom = nom;
+        this.quantite = qte;
+    }
+
+    public String getNom() { return nom; }
+    public int getQuantite() { return quantite; }
+    public String getSecteur() { return secteur; }
+    public int getDegre() { return degre; }
+    public int getCouleur() { return couleur; }
+
+    public void setQuantite(int q) { this.quantite = q; }
+    public void setSecteur(String s) { this.secteur = s; }
+    public void setDegre(int d) { this.degre = d; }
+    public void setCouleur(int c) { this.couleur = c; }
+
+    public boolean isPlanned() { return planned; }
+    public void setPlanned(boolean p) { this.planned = p; }
+
+    public int getJour() { return jour; }
+    public void setJour(int j) { this.jour = j; }
+
+    @Override
+    public int compareTo(Sommet s) {
+        return Integer.compare(s.degre, this.degre);
+    }
+}
