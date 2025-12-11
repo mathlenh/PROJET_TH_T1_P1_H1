@@ -1,0 +1,88 @@
+import java.io.*;
+import java.util.*;
+
+public class Graphe {
+
+    private Map<String, Integer> index = new HashMap<>();
+    private List<String> noms = new ArrayList<>();
+
+    private List<List<int[]>> adjOriente = new ArrayList<>();
+    private int[][] matNonOriente;
+
+    private int n;
+
+    public int taille() { return n; }
+    public String getNom(int i) { return noms.get(i); }
+    public int getIndex(String nom) { return index.get(nom); }
+    public List<int[]> getVoisinsOriente(int u) { return adjOriente.get(u); }
+    public int[][] getMatriceNonOriente() { return matNonOriente; }
+
+    public void charger(String fichier) throws Exception {
+
+        BufferedReader br = new BufferedReader(new FileReader(fichier));
+        String ligne;
+
+        List<String[]> edges = new ArrayList<>();
+        Set<String> uniqueNames = new HashSet<>();
+
+        while ((ligne = br.readLine()) != null) {
+            if (ligne.trim().isEmpty()) continue;
+
+            String[] p = ligne.split(";");
+            if (p.length < 4) {
+                throw new RuntimeException("Format incorrect : " + ligne);
+            }
+
+            String A = p[0].trim();
+            String B = p[1].trim();
+            int dist = Integer.parseInt(p[2].trim());
+            int orient = Integer.parseInt(p[3].trim());
+
+            uniqueNames.add(A);
+            uniqueNames.add(B);
+            edges.add(new String[]{A, B, "" + dist, "" + orient});
+        }
+        br.close();
+
+        n = uniqueNames.size();
+        int id = 0;
+        for (String nom : uniqueNames) {
+            index.put(nom, id);
+            noms.add(nom);
+            id++;
+        }
+
+        for (int i = 0; i < n; i++)
+            adjOriente.add(new ArrayList<>());
+
+        matNonOriente = new int[n][n];
+        for (int i = 0; i < n; i++)
+            Arrays.fill(matNonOriente[i], 999999);
+        for (int i = 0; i < n; i++)
+            matNonOriente[i][i] = 0;
+
+        for (String[] e : edges) {
+            int u = index.get(e[0]);
+            int v = index.get(e[1]);
+            int d = Integer.parseInt(e[2]);
+            int o = Integer.parseInt(e[3]);
+
+            if (o == 0) {
+                adjOriente.get(u).add(new int[]{v, d});
+                adjOriente.get(v).add(new int[]{u, d});
+                matNonOriente[u][v] = d;
+                matNonOriente[v][u] = d;
+            }
+            else if (o == 1) {
+                adjOriente.get(u).add(new int[]{v, d});
+                matNonOriente[u][v] = Math.min(matNonOriente[u][v], d);
+                matNonOriente[v][u] = Math.min(matNonOriente[v][u], d);
+            }
+            else if (o == 2) {
+                adjOriente.get(v).add(new int[]{u, d});
+                matNonOriente[u][v] = Math.min(matNonOriente[u][v], d);
+                matNonOriente[v][u] = Math.min(matNonOriente[v][u], d);
+            }
+        }
+    }
+}
