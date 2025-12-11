@@ -2,12 +2,12 @@ import java.util.*;
 
 public class Dijkstra {
 
-    private static int[] dist;
-    private static int[] parent;
+    private static int[] dist; //contient la distance minimale pour aller jusqu'à un sommet
+    private static int[] parent; //mémorise les sommets prédécesseurs du PCC
 
     public static void run(Graphe g, int source) {
 
-        int n = g.taille();
+        int n = g.taille(); //Nombre de sommets du graphe
         dist = new int[n];
         parent = new int[n];
         boolean[] visited = new boolean[n];
@@ -15,9 +15,9 @@ public class Dijkstra {
         Arrays.fill(dist, 999999);
         Arrays.fill(parent, -1);
 
-        dist[source] = 0;
+        dist[source] = 0; //La distance du sommet de départ est nulle
 
-        for (int rep = 0; rep < n; rep++) {
+        for (int rep = 0; rep < n; rep++) { //On cherche les sommets qui n’ont pas encore été visités avec la plus petite distance
 
             int u = -1;
             for (int i = 0; i < n; i++) {
@@ -28,11 +28,11 @@ public class Dijkstra {
 
             if (u == -1) break;
 
-            visited[u] = true;
+            visited[u] = true; //Déclare le sommet comme visité
 
             for (int[] arc : g.getVoisinsOriente(u)) {
-                int v = arc[0];
-                int w = arc[1];
+                int v = arc[0]; // le sommet voisin
+                int w = arc[1]; // le poids de l’arete
 
                 if (!visited[v] && dist[u] + w < dist[v]) {
                     dist[v] = dist[u] + w;
