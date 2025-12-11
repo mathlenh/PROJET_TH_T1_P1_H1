@@ -1,0 +1,84 @@
+import java.util.*;
+
+public class WelshPowell {
+
+    // ========== Hypothèse 1 ==========
+    public static Map<String, Integer> colorationSimple(GrapheT3 g) {
+
+        Map<String, Sommet> sommets = g.getSommets();
+        Map<String, List<String>> adj = g.getAdj();
+
+        List<Sommet> liste = new ArrayList<>(sommets.values());
+        Collections.sort(liste);
+
+        int couleur = 1;
+        Map<String, Integer> res = new HashMap<>();
+
+        for (Sommet s : liste) {
+
+            if (s.getCouleur() == 0) {
+                s.setCouleur(couleur);
+                res.put(s.getNom(), couleur);
+
+                for (Sommet autres : liste) {
+                    if (autres.getCouleur() == 0 &&
+                            !adj.getOrDefault(s.getNom(), new ArrayList<>()).contains(autres.getNom())) {
+                        autres.setCouleur(couleur);
+                        res.put(autres.getNom(), couleur);
+                    }
+                }
+                couleur++;
+            }
+        }
+        return res;
+    }
+
+    // ========== Hypothèse 2 ==========
+    public static Map<Integer, List<Sommet>> colorationAvecCapacite(GrapheT3 g) {
+
+        Map<String, Sommet> sommets = g.getSommets();
+        Map<String, List<String>> adj = g.getAdj();
+
+        List<Sommet> liste = new ArrayList<>(sommets.values());
+        Collections.sort(liste);
+
+        Map<Integer, List<Sommet>> planning = new HashMap<>();
+        int jour = 1;
+
+        while (true) {
+
+            int charge = 0;
+            List<Sommet> jourList = new ArrayList<>();
+
+            for (Sommet s : liste) {
+
+                if (s.isPlanned()) continue;
+
+                boolean conflit = false;
+
+                for (String voisin : adj.getOrDefault(s.getNom(), new ArrayList<>())) {
+                    Sommet sv = sommets.get(voisin);
+
+                    if (sv != null && sv.isPlanned() && sv.getJour() == jour) {
+                        conflit = true;
+                        break;
+                    }
+                }
+
+                if (!conflit && charge + s.getQuantite() <= 4000) {
+                    s.setPlanned(true);
+                    s.setJour(jour);
+                    charge += s.getQuantite();
+                    jourList.add(s);
+                }
+            }
+
+            if (jourList.isEmpty()) break;
+
+            planning.put(jour, jourList);
+            jour++;
+        }
+
+        return planning;
+    }
+}
