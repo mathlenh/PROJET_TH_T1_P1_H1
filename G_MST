@@ -1,0 +1,123 @@
+import java.util.*;
+
+public class MST {
+
+    static class Edge {
+        int u, v, w;
+        Edge(int u, int v, int w) {
+            this.u = u;
+            this.v = v;
+            this.w = w;
+        }
+    }
+
+    private List<Edge> mst = new ArrayList<>();
+    private List<List<Integer>> adjMST;
+
+    public MST(Graphe g) {
+
+        int[][] mat = g.getMatriceNonOriente();
+        int n = g.taille();
+
+        List<Edge> edges = new ArrayList<>();
+
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (mat[i][j] < 999999) {
+                    edges.add(new Edge(i, j, mat[i][j]));
+                }
+            }
+        }
+
+        edges.sort(Comparator.comparingInt(e -> e.w));
+
+        int[] parent = new int[n];
+        for (int i = 0; i < n; i++) parent[i] = i;
+
+        for (Edge e : edges) {
+            int ru = find(parent, e.u);
+            int rv = find(parent, e.v);
+
+            if (ru != rv) {
+                mst.add(e);
+                parent[ru] = rv;
+            }
+        }
+
+        adjMST = new ArrayList<>();
+        for (int i = 0; i < n; i++) adjMST.add(new ArrayList<>());
+
+        for (Edge e : mst) {
+            adjMST.get(e.u).add(e.v);
+            adjMST.get(e.v).add(e.u);
+        }
+    }
+
+    private int find(int[] parent, int x) {
+        while (parent[x] != x) x = parent[x];
+        return x;
+    }
+
+    public List<Integer> dfsComplet(int start) {
+        List<Integer> parcours = new ArrayList<>();
+        dfs(start, -1, parcours);
+        parcours.add(start);
+        return parcours;
+    }
+
+    private void dfs(int u, int parent, List<Integer> out) {
+        out.add(u);
+        for (int v : adjMST.get(u)) {
+            if (v != parent) {
+                dfs(v, u, out);
+                out.add(u);
+            }
+        }
+    }
+
+    public List<Integer> shortcut(List<Integer> marche) {
+        List<Integer> nouvelOrdre = new ArrayList<>();
+        Set<Integer> dejaVu = new HashSet<>();
+
+        for (int x : marche) {
+            if (!dejaVu.contains(x)) {
+                nouvelOrdre.add(x);
+                dejaVu.add(x);
+            }
+        }
+        return nouvelOrdre;
+    }
+
+    public List<Integer> construireItineraire(Graphe g, List<Integer> ordre, int depot) {
+
+        List<Integer> result = new ArrayList<>();
+        int courant = depot;
+        result.add(courant);
+
+        for (int next : ordre) {
+
+            Dijkstra.run(g, courant);
+            List<Integer> segment = Dijkstra.chemin(next);
+
+            segment.remove(0);
+            result.addAll(segment);
+
+            courant = next;
+        }
+
+        Dijkstra.run(g, courant);
+        List<Integer> retour = Dijkstra.chemin(depot);
+        retour.remove(0);
+        result.addAll(retour);
+
+        return result;
+    }
+
+    public void afficherMST(Graphe g) {
+        System.out.println("\n===== ARBRE COUVRANT DE POIDS MINIMUM (MST) =====\n");
+        for (Edge e : mst) {
+            System.out.println(g.getNom(e.u) + " -- " + g.getNom(e.v) + " ( " + e.w + " )");
+        }
+        System.out.println();
+    }
+}
