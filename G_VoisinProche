@@ -2,23 +2,34 @@ import java.util.*;
 
 public class VoisinProche {
 
+     * ==========================================================
+     *  ALGORITHME TSP GLOUTON + DIJKSTRA
+     *  Génère une tournée complète en respectant les rues orientées
+     * ==========================================================
     public static List<Integer> tournee(Graphe g, int depart) {
 
-        int n = g.taille();
-        boolean[] visite = new boolean[n];
+        int n = g.taille();                 // Nombre total de sommets du graphe
+        boolean[] visite = new boolean[n];  // Tableau pour savoir quels sommets ont déjà été visités
 
-        List<Integer> tour = new ArrayList<>();
-        int courant = depart;
+        List<Integer> tour = new ArrayList<>();  // Pour intégrer la tournée complète
+        int courant = depart;                    // Sommet actuel (départ = dépôt)
 
-        visite[courant] = true;
-        tour.add(courant);
+        visite[courant] = true;      // On marque le dépôt comme visité
+        tour.add(courant);           // On ajoute le dépôt comme premier point de la tournée
 
+        /* ==========================================================
+        //   On appelle Djikstra //
+           ==========================================================*/
         for (int step = 1; step < n; step++) {
 
+            //    Lancer DIJKSTRA depuis le sommet courant
+            //    Cela calcule toutes les distances minimales depuis ce point
             Dijkstra.run(g, courant);
-            int next = -1;
-            int bestDist = 999999;
 
+            int next = -1;          // meilleur sommet suivant
+            int bestDist = 999999;  // meilleure distance trouvée pour l’instant
+
+            // On cherche le sommet non visité le plus proche
             for (int i = 0; i < n; i++) {
                 if (!visite[i] && Dijkstra.distanceTo(i) < bestDist) {
                     bestDist = Dijkstra.distanceTo(i);
@@ -26,24 +37,42 @@ public class VoisinProche {
                 }
             }
 
+            // Si y'a aucun sommet atteignable
             if (next == -1) break;
 
+            // Alors on récupère le chemin optimal entre COURANT et NEXT
             List<Integer> segment = Dijkstra.chemin(next);
+
+            // On enlève le premier sommet car il est déjà dans la tournée
             segment.remove(0);
 
+            // Ajouter le chemin à la tournée
             tour.addAll(segment);
 
+            // On marque avec boolean puis next
             visite[next] = true;
             courant = next;
         }
-
+         /*
+        // ==========================================================
+        //   RETOUR AU DÉPÔT : on utilise encore DIJKSTRA
+        // ==========================================================
+        */
         Dijkstra.run(g, courant);
         List<Integer> retour = Dijkstra.chemin(depart);
+
+        // On retire le premier sommet (déjà dans la tournée)
         retour.remove(0);
+
+        // On ajoute le chemin retour à la tournée
         tour.addAll(retour);
 
         return tour;
     }
+
+     * ==========================================================
+     *  AFFICHAGE DE LA TOURNÉE ET CALCUL DE LA DISTANCE TOTALE
+     * ==========================================================
 
     public static void afficherTournee(Graphe g, List<Integer> tour) {
 
@@ -51,19 +80,24 @@ public class VoisinProche {
         System.out.println("   APPROCHE VOISIN LE PLUS PROCHE");
         System.out.println("====================================\n");
 
-        int total = 0;
+        int total = 0;   // distance totale parcourue
 
+        // Pour chaque déplacement de la tournée
         for (int i = 0; i < tour.size() - 1; i++) {
-            int u = tour.get(i);
-            int v = tour.get(i + 1);
 
+            int u = tour.get(i);       // sommet actuel
+            int v = tour.get(i + 1);   // sommet suivant
+
+            // Recalcul DIJKSTRA pour connaître la distance exacte
             Dijkstra.run(g, u);
-            int d = Dijkstra.distanceTo(v);
-            total += d;
+
+            int d = Dijkstra.distanceTo(v);  // distance minimale optimisée entre u et v
+            total += d;                      // cumul de la distance
 
             System.out.println(g.getNom(u) + " -> " + g.getNom(v) + " ( " + d + " m )");
         }
 
+        // Distance totale finale
         System.out.println("\n>>> Distance totale estimée : " + total + " m");
     }
 }
