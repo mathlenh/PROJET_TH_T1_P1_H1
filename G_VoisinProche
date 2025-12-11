@@ -1,0 +1,69 @@
+import java.util.*;
+
+public class VoisinProche {
+
+    public static List<Integer> tournee(Graphe g, int depart) {
+
+        int n = g.taille();
+        boolean[] visite = new boolean[n];
+
+        List<Integer> tour = new ArrayList<>();
+        int courant = depart;
+
+        visite[courant] = true;
+        tour.add(courant);
+
+        for (int step = 1; step < n; step++) {
+
+            Dijkstra.run(g, courant);
+            int next = -1;
+            int bestDist = 999999;
+
+            for (int i = 0; i < n; i++) {
+                if (!visite[i] && Dijkstra.distanceTo(i) < bestDist) {
+                    bestDist = Dijkstra.distanceTo(i);
+                    next = i;
+                }
+            }
+
+            if (next == -1) break;
+
+            List<Integer> segment = Dijkstra.chemin(next);
+            segment.remove(0);
+
+            tour.addAll(segment);
+
+            visite[next] = true;
+            courant = next;
+        }
+
+        Dijkstra.run(g, courant);
+        List<Integer> retour = Dijkstra.chemin(depart);
+        retour.remove(0);
+        tour.addAll(retour);
+
+        return tour;
+    }
+
+    public static void afficherTournee(Graphe g, List<Integer> tour) {
+
+        System.out.println("\n====================================");
+        System.out.println("   APPROCHE VOISIN LE PLUS PROCHE");
+        System.out.println("====================================\n");
+
+        int total = 0;
+
+        for (int i = 0; i < tour.size() - 1; i++) {
+            int u = tour.get(i);
+            int v = tour.get(i + 1);
+
+            Dijkstra.run(g, u);
+            int d = Dijkstra.distanceTo(v);
+            total += d;
+
+            System.out.println(g.getNom(u) + " -> " + g.getNom(v) + " ( " + d + " m )");
+        }
+
+        System.out.println("\n>>> Distance totale estimée : " + total + " m");
+    }
+}
