@@ -2,118 +2,118 @@ import java.util.*;
 
 public class MST {
 
-    static class Edge {
+    static class Edge {//classe qui représente une arête non orienté 
         int u, v, w;
         Edge(int u, int v, int w) {
-            this.u = u;
-            this.v = v;
-            this.w = w;
+            this.u = u; //sommet A
+            this.v = v; //sommet B
+            this.w = w; // poids de l'arête
         }
     }
 
-    private List<Edge> mst = new ArrayList<>();
-    private List<List<Integer>> adjMST;
+    private List<Edge> mst = new ArrayList<>(); //liste des arêtes séléctionnées après Kruskal 
+    private List<List<Integer>> adjMST; //liste d'adjacence de l'arbre 
 
     public MST(Graphe g) {
 
-        int[][] mat = g.getMatriceNonOriente();
-        int n = g.taille();
+        int[][] mat = g.getMatriceNonOriente(); //matrice d'adjacence pour visualiser les distances 
+        int n = g.taille(); 
 
-        List<Edge> edges = new ArrayList<>();
+        List<Edge> edges = new ArrayList<>(); //transforme la matrice en liste d'arête
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++) { //on parcours que la moitié supèrieur qui se répète ensuite 
             for (int j = i + 1; j < n; j++) {
-                if (mat[i][j] < 999999) {
+                if (mat[i][j] < 999999) { //999999 symbolise l'absence d'arêtes
                     edges.add(new Edge(i, j, mat[i][j]));
                 }
             }
         }
 
-        edges.sort(Comparator.comparingInt(e -> e.w));
+        edges.sort(Comparator.comparingInt(e -> e.w)); //tri des arêtes par ordre croissant 
 
-        int[] parent = new int[n];
+        int[] parent = new int[n]; //chaque sommet est son propre parent au début 
         for (int i = 0; i < n; i++) parent[i] = i;
 
-        for (Edge e : edges) {
-            int ru = find(parent, e.u);
+        for (Edge e : edges) { //parcours des arêtes triés
+            int ru = find(parent, e.u); //on récupère les racines des arêtes choisis
             int rv = find(parent, e.v);
 
-            if (ru != rv) {
-                mst.add(e);
-                parent[ru] = rv;
+            if (ru != rv) { //si il n'y a pas de cycle 
+                mst.add(e); //on ajoute à l'ACPM
+                parent[ru] = rv; //union des composantes 
             }
         }
 
-        adjMST = new ArrayList<>();
+        adjMST = new ArrayList<>(); //construction de la liste d'adjacence de l'ACPM
         for (int i = 0; i < n; i++) adjMST.add(new ArrayList<>());
 
-        for (Edge e : mst) {
+        for (Edge e : mst) { //on ajoute chaque arêtes dans les deux sens car non orienté
             adjMST.get(e.u).add(e.v);
             adjMST.get(e.v).add(e.u);
         }
     }
 
-    private int find(int[] parent, int x) {
+    private int find(int[] parent, int x) { //Remonte récursivement jusqu’à trouver la racine
         while (parent[x] != x) x = parent[x];
         return x;
     }
 
-    public List<Integer> dfsComplet(int start) {
+    public List<Integer> dfsComplet(int start) { //parcours DFS de l'ACPM
         List<Integer> parcours = new ArrayList<>();
         dfs(start, -1, parcours);
-        parcours.add(start);
+        parcours.add(start); //réajout du sommet de départ pour fermer 
         return parcours;
     }
 
-    private void dfs(int u, int parent, List<Integer> out) {
+    private void dfs(int u, int parent, List<Integer> out) { //DFS récursif qui ajoute un sommet à chaque passage
         out.add(u);
         for (int v : adjMST.get(u)) {
             if (v != parent) {
                 dfs(v, u, out);
-                out.add(u);
+                out.add(u); //retour arrière dans l'arbre
             }
         }
     }
 
-    public List<Integer> shortcut(List<Integer> marche) {
+    public List<Integer> shortcut(List<Integer> marche) { //shortcutting supprime les étape deja visitées
         List<Integer> nouvelOrdre = new ArrayList<>();
         Set<Integer> dejaVu = new HashSet<>();
 
         for (int x : marche) {
             if (!dejaVu.contains(x)) {
                 nouvelOrdre.add(x);
-                dejaVu.add(x);
+                dejaVu.add(x); 
             }
         }
         return nouvelOrdre;
     }
 
-    public List<Integer> construireItineraire(Graphe g, List<Integer> ordre, int depot) {
+    public List<Integer> construireItineraire(Graphe g, List<Integer> ordre, int depot) { //construction de l'itinéraire final 
 
         List<Integer> result = new ArrayList<>();
         int courant = depot;
         result.add(courant);
 
-        for (int next : ordre) {
+        for (int next : ordre) { //pour chaque prochain point du parcours 
 
-            Dijkstra.run(g, courant);
+            Dijkstra.run(g, courant); //calcul du PCC
             List<Integer> segment = Dijkstra.chemin(next);
 
-            segment.remove(0);
+            segment.remove(0); //retire le premier élément déja présent au result 
             result.addAll(segment);
 
             courant = next;
         }
 
         Dijkstra.run(g, courant);
-        List<Integer> retour = Dijkstra.chemin(depot);
+        List<Integer> retour = Dijkstra.chemin(depot);// retour au depot 
         retour.remove(0);
         result.addAll(retour);
 
         return result;
     }
 
-    public void afficherMST(Graphe g) {
+    public void afficherMST(Graphe g) { //affiche l'ACPM
         System.out.println("\n===== ARBRE COUVRANT DE POIDS MINIMUM (MST) =====\n");
         for (Edge e : mst) {
             System.out.println(g.getNom(e.u) + " -- " + g.getNom(e.v) + " ( " + e.w + " )");
