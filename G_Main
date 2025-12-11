@@ -1,0 +1,237 @@
+import java.util.*;
+import java.io.*;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("\n==============================================");
+        System.out.println("        PROGRAMME GLOBAL — THÉORIE DES GRAPHES");
+        System.out.println("==============================================\n");
+
+        while (true) {
+
+            System.out.println("\n================ MENU PRINCIPAL ================");
+            System.out.println("1. Thème 1 — Problématique 1 — Hypothèse 1 (Aller/Retour)");
+            System.out.println("2. Thème 1 — Problématique 1 — Hypothèse 2 (Tournées gloutonnes)");
+            System.out.println("3. Thème 1 — Problématique 2 (Plus court chemin simple)");
+            System.out.println("4. Thème 2 — Approche 1 (Voisin Proche)");
+            System.out.println("5. Thème 2 — Approche 2 (MST + Raccourcissement + PCC)");
+            System.out.println("6. Thème 3 — Hypothèse 1 (Coloration simple)");
+            System.out.println("7. Thème 3 — Hypothèse 2 (Coloration + capacités)");
+            System.out.println("0. Quitter");
+            System.out.println("=================================================");
+
+            System.out.print("\nVotre choix : ");
+            int choix = sc.nextInt();
+            sc.nextLine();
+
+            if (choix == 0) break;
+
+            /* ============================================================
+                             TRAITEMENTS THÈMES 1 ET 2
+               ============================================================ */
+            if (choix >= 1 && choix <= 5) {
+
+                String[] info = demanderHypothese(sc);
+                String fichier = info[0];
+                String descriptionHypothese = info[1];
+
+                Graphe g = new Graphe();
+                try {
+                    g.charger(fichier);
+                } catch (Exception e) {
+                    System.out.println("Erreur : " + e.getMessage());
+                    continue;
+                }
+
+                switch (choix) {
+
+                    case 1 -> {
+                        String depot = demanderDepot(g, sc);
+                        List<String> clients = demanderClients(g, depot, sc);
+                        Encombrants.hypothese1(g, depot, clients);
+                        afficherFinHypothese(descriptionHypothese);
+                    }
+
+                    case 2 -> {
+                        String depot = demanderDepot(g, sc);
+                        List<String> clients = demanderClients(g, depot, sc);
+                        System.out.print("Capacité du camion : ");
+                        int cap = sc.nextInt();
+                        sc.nextLine();
+
+                        Encombrants.hypothese2(g, depot, clients, cap);
+                        afficherFinHypothese(descriptionHypothese);
+                    }
+
+                    case 3 -> {
+                        System.out.println("\nListe des sommets :");
+                        for (int i = 0; i < g.taille(); i++)
+                            System.out.println("- " + g.getNom(i));
+
+                        System.out.print("\nSommet de départ : ");
+                        String A = sc.nextLine();
+                        System.out.print("Sommet d'arrivée : ");
+                        String B = sc.nextLine();
+
+                        int s = g.getIndex(A);
+                        int t = g.getIndex(B);
+
+                        Dijkstra.run(g, s);
+                        List<Integer> chemin = Dijkstra.chemin(t);
+
+                        System.out.println("\nChemin trouvé :");
+                        afficherChemin(g, chemin);
+                        System.out.println("Distance totale : " + Dijkstra.distanceTo(t) + " m\n");
+
+                        afficherFinHypothese(descriptionHypothese);
+                    }
+
+                    case 4 -> {
+                        String depot = demanderDepot(g, sc);
+                        int d = g.getIndex(depot);
+
+                        List<Integer> tour = VoisinProche.tournee(g, d);
+                        VoisinProche.afficherTournee(g, tour);
+
+                        afficherFinHypothese(descriptionHypothese);
+                    }
+
+                    case 5 -> {
+                        String depot = demanderDepot(g, sc);
+                        int d = g.getIndex(depot);
+
+                        MST mst = new MST(g);
+                        mst.afficherMST(g);
+
+                        System.out.println("Construction du parcours (DFS)...");
+                        List<Integer> marche = mst.dfsComplet(d);
+
+                        System.out.println("Raccourcissement...");
+                        List<Integer> ordre = mst.shortcut(marche);
+
+                        System.out.println("Construction de l’itinéraire final (Dijkstra)...");
+                        List<Integer> itin = mst.construireItineraire(g, ordre, d);
+
+                        System.out.println("\nItinéraire final :");
+                        afficherChemin(g, itin);
+
+                        afficherFinHypothese(descriptionHypothese);
+                    }
+                }
+
+                continue;
+            }
+
+            /* ============================================================
+                                    THÈME 3
+               ============================================================ */
+            if (choix == 6 || choix == 7) {
+
+                GrapheT3 g3 = new GrapheT3();
+                g3.lireGrapheSimple("graphe.txt");
+
+                if (choix == 6) {
+                    var couleurs = WelshPowell.colorationSimple(g3);
+
+                    System.out.println("\n===== RÉSULTAT THÈME 3 — HYPOTHÈSE 1 =====");
+                    couleurs.forEach((nom, c) ->
+                            System.out.println(nom + " → Jour " + c));
+                }
+
+                if (choix == 7) {
+                    g3.lireCollecte("collecte.txt");
+                    var planning = WelshPowell.colorationAvecCapacite(g3);
+
+                    System.out.println("\n===== RÉSULTAT THÈME 3 — HYPOTHÈSE 2 =====");
+
+                    for (int jour : planning.keySet()) {
+                        System.out.println("Jour " + jour + " :");
+
+                        int charge = 0;
+                        for (Sommet s : planning.get(jour)) {
+                            charge += s.getQuantite();
+                            System.out.println(" → " + s.getNom()
+                                    + " (qt=" + s.getQuantite()
+                                    + ", secteur=" + s.getSecteur() + ")");
+                        }
+
+                        System.out.println(" Charge totale = " + charge + "\n");
+                    }
+                }
+
+                continue;
+            }
+
+            System.out.println("Choix invalide.");
+        }
+
+        System.out.println("\nProgramme terminé.");
+    }
+
+    /* ============================================================
+                        MÉTHODES UTILITAIRES
+       ============================================================ */
+
+    private static String[] demanderHypothese(Scanner sc) {
+
+        System.out.println("\nChoisissez une hypothèse pour le graphe :");
+        System.out.println("1. Hypothèse 1 (non orienté)");
+        System.out.println("2. Hypothèse 2 (orienté)");
+        System.out.println("3. Hypothèse 3 (mixte)");
+
+        System.out.print("Votre choix : ");
+        int h = sc.nextInt();
+        sc.nextLine();
+
+        return switch (h) {
+            case 1 -> new String[]{"massy1.txt", "Hypothèse 1 — Graphe non orienté"};
+            case 2 -> new String[]{"massy2.txt", "Hypothèse 2 — Graphe orienté"};
+            case 3 -> new String[]{"massy3.txt", "Hypothèse 3 — Graphe mixte"};
+            default -> new String[]{"massy1.txt", "Hypothèse par défaut : graphe non orienté"};
+        };
+    }
+
+    private static void afficherFinHypothese(String texte) {
+        System.out.println("\n--------------------------------------------------");
+        System.out.println("Résultats obtenus sous : " + texte);
+        System.out.println("--------------------------------------------------\n");
+    }
+
+    private static String demanderDepot(Graphe g, Scanner sc) {
+        System.out.println("\nListe des sommets :");
+        for (int i = 0; i < g.taille(); i++)
+            System.out.println("- " + g.getNom(i));
+
+        System.out.print("\nNom du dépôt : ");
+        return sc.nextLine().trim();
+    }
+
+    private static List<String> demanderClients(Graphe g, String depot, Scanner sc) {
+
+        List<String> clients = new ArrayList<>();
+
+        System.out.println("\nCombien de clients souhaitez-vous ajouter ?");
+        int k = sc.nextInt();
+        sc.nextLine();
+
+        for (int i = 0; i < k; i++) {
+            System.out.print("Nom du client " + (i + 1) + " : ");
+            String c = sc.nextLine().trim();
+            if (!c.equals(depot)) clients.add(c);
+        }
+
+        return clients;
+    }
+
+    private static void afficherChemin(Graphe g, List<Integer> c) {
+        for (int i = 0; i < c.size(); i++) {
+            System.out.print(g.getNom(c.get(i)));
+            if (i < c.size() - 1) System.out.print(" -> ");
+        }
+        System.out.println();
+    }
+}
